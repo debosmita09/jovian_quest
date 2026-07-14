@@ -30,4 +30,3 @@ I will be walking through the game during the presentation and showing clips of 
 2.	NASA Science. Jupiter's Moons. National Aeronautics and Space Administration, 2025. https://science.nasa.gov/jupiter/moons/
 3.	NASA Science. Jupiter Overview. National Aeronautics and Space Administration, 2025. https://science.nasa.gov/solar-system/planets/jupiter/
 4.	Planeta 42. Jupiter's Moons. Planeta 42, n.d. https://planeta42.com/astronomy/jupitermoons/
-<img width="499" height="665" alt="image" src="https://github.com/user-attachments/assets/c93f468a-3771-4aaf-82ba-57ade8d93914" />
