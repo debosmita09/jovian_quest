@@ -6,18 +6,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
-    --panel-bg: rgba(10, 14, 30, 0.94);
+    --bg-deep: #05060f;
+    --panel-bg: rgba(10, 14, 30, 0.95);
     --panel-border: #f4a940;
     --text-main: #eaf1ff;
+    --text-dim: #9aa4d6;
     --accent: #f4a940;
     --accent2: #5fc8ff;
     --danger: #ff6b6b;
     --good: #6bffb0;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
   }
   *{ box-sizing: border-box; }
   html, body{
     margin:0; padding:0; height:100%;
-    background: radial-gradient(ellipse at 50% 20%, #0d1230 0%, #05070f 70%);
+    background: radial-gradient(ellipse at 50% 15%, #131a3d 0%, #05060f 65%);
     font-family: 'Segoe UI', Verdana, Tahoma, sans-serif;
     color: var(--text-main);
     overflow: hidden;
@@ -25,86 +30,149 @@
   #app{
     position: relative;
     width: 100%;
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     height: 100vh;
     display: flex;
     flex-direction: column;
   }
+
+  /* ---------- HUD ---------- */
   #hud{
     display:flex; align-items:center; justify-content:space-between;
-    padding: 8px 14px;
-    background: linear-gradient(180deg, #12163a, #0a0d22);
+    padding: 9px 16px;
+    background: linear-gradient(180deg, #141a42, #0a0d22);
     border-bottom: 2px solid var(--accent);
     z-index: 20;
     flex-shrink:0;
+    gap: 10px;
   }
-  #hud .title{ font-weight:700; letter-spacing:1px; color: var(--accent); font-size: 15px;}
-  #hud .stats{ display:flex; gap:16px; align-items:center; font-size:14px;}
+  #hud .title{
+    font-weight:800; letter-spacing:1.5px; color: var(--accent); font-size: 15px;
+    text-shadow: 0 0 12px rgba(244,169,64,0.45);
+    white-space: nowrap;
+  }
+  #hud .stats{ display:flex; gap:14px; align-items:center; font-size:13.5px; flex-wrap: wrap; justify-content:flex-end;}
+  #progress-wrap{ display:flex; align-items:center; gap:6px; }
+  #progress-track{
+    width: 70px; height:7px; border-radius:6px; background:#1b2050;
+    border: 1px solid #2c3670; overflow:hidden;
+  }
+  #progress-fill{
+    height:100%; width:0%; background: linear-gradient(90deg, var(--accent2), var(--good));
+    transition: width 0.5s ease;
+  }
   #hud button{
     background: #1b2050; color: var(--text-main); border: 1px solid var(--accent2);
-    padding: 6px 12px; border-radius: 6px; cursor:pointer; font-size: 13px;
+    padding: 6px 12px; border-radius: var(--radius-sm); cursor:pointer; font-size: 13px;
+    transition: background 0.15s, color 0.15s;
   }
   #hud button:hover{ background: var(--accent2); color:#04101c; }
-  #game-container{
-    flex: 1;
-    position: relative;
-    min-height: 0;
-  }
+
+  #game-container{ flex: 1; position: relative; min-height: 0; }
   #game-container canvas{ display:block; margin: 0 auto; max-width:100%; max-height:100%; }
 
+  /* ---------- Overlays / panels ---------- */
   .overlay{
     position:absolute; inset:0; z-index: 50;
     display:none; align-items:center; justify-content:center;
-    background: rgba(2,4,12,0.72);
+    background: rgba(2,4,12,0.78);
     padding: 16px;
   }
   .overlay.visible{ display:flex; }
   .panel{
     background: var(--panel-bg);
     border: 2px solid var(--panel-border);
-    border-radius: 12px;
+    border-radius: var(--radius-lg);
     padding: 22px 24px;
     max-width: 560px;
     width: 100%;
-    max-height: 86%;
+    max-height: 88%;
     overflow-y: auto;
-    box-shadow: 0 0 30px rgba(244,169,64,0.25);
+    box-shadow: 0 0 40px rgba(244,169,64,0.22);
+    animation: panelIn 0.22s ease;
   }
-  .panel h2{ margin-top:0; color: var(--accent); font-size: 20px; }
+  @keyframes panelIn{ from{ opacity:0; transform: translateY(8px) scale(0.98);} to{ opacity:1; transform: none; } }
+  .panel h2{ margin-top:0; color: var(--accent); font-size: 20px; letter-spacing:0.3px; }
   .panel h3{ color: var(--accent2); margin-bottom: 4px; }
-  .panel p{ line-height:1.5; font-size: 14.5px; }
-  .panel-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+  .panel p{ line-height:1.55; font-size: 14.5px; }
+  .panel-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; flex-wrap: wrap; }
   .btn{
-    background: var(--accent); color:#1a1200; border:none; font-weight:600;
-    padding: 9px 18px; border-radius:8px; cursor:pointer; font-size:14px;
+    background: var(--accent); color:#1a1200; border:none; font-weight:700;
+    padding: 9px 18px; border-radius:var(--radius-sm); cursor:pointer; font-size:14px;
+    transition: filter 0.15s, transform 0.1s;
   }
-  .btn:hover{ filter: brightness(1.1); }
+  .btn:hover{ filter: brightness(1.12); }
+  .btn:active{ transform: scale(0.97); }
   .btn.secondary{ background: transparent; color: var(--accent2); border:1px solid var(--accent2); }
+  .btn.ghost{ background: transparent; color: var(--text-dim); border:1px solid #2c3670; }
   .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  .nasa-photo{
+    width: 100%; border-radius: var(--radius-md); display:block; margin-bottom: 10px;
+    border: 1px solid #2c3670; background: #0a0d22;
+    max-height: 260px; object-fit: cover;
+  }
+  .nasa-credit{
+    font-size: 11px; color: var(--text-dim); margin: -4px 0 12px; font-style: italic;
+  }
+  .nasa-credit a{ color: var(--accent2); }
+  .photo-fallback{
+    font-size: 12.5px; color: var(--text-dim); border: 1px dashed #2c3670; border-radius: var(--radius-md);
+    padding: 14px; text-align:center; margin-bottom: 12px;
+  }
 
   .quiz-option{
     display:block; width:100%; text-align:left;
     background:#141a3d; color: var(--text-main); border:1px solid #2c3670;
-    padding: 10px 12px; margin: 6px 0; border-radius: 8px; cursor:pointer; font-size:14px;
+    padding: 10px 12px; margin: 6px 0; border-radius: var(--radius-sm); cursor:pointer; font-size:14px;
+    transition: border-color 0.15s;
   }
   .quiz-option:hover{ border-color: var(--accent2); }
   .quiz-option.correct{ background: #103d29; border-color: var(--good); }
   .quiz-option.wrong{ background: #3d1414; border-color: var(--danger); }
   .quiz-option:disabled{ cursor:default; }
   .feedback{ margin-top:10px; font-size: 13.5px; font-style: italic; color: var(--accent2); }
-  .progress-line{ font-size:12px; color:#9aa4d6; margin-bottom:6px; }
+  .progress-line{ font-size:12px; color: var(--text-dim); margin-bottom:6px; }
 
   #mission-log-list .log-entry{
     border-left: 3px solid var(--accent2); padding: 6px 10px; margin-bottom:10px; font-size: 13.5px;
-    background: rgba(95,200,255,0.06); border-radius: 0 6px 6px 0;
+    background: rgba(95,200,255,0.06); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   }
   #mission-log-list .log-entry b{ color: var(--accent); }
+  #mission-log-list .log-entry .tag{ color: var(--text-dim); font-size: 11px; }
 
   .tooltip-toast{
     position:absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
     background: rgba(20,10,10,0.92); border:1px solid var(--danger); color:#ffdada;
-    padding: 8px 16px; border-radius: 8px; font-size: 13px; z-index: 60; display:none;
+    padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; z-index: 60; display:none;
+  }
+
+  /* ---------- Landing sequence ---------- */
+  #landing-overlay{
+    position:absolute; inset:0; z-index: 80; display:none;
+    align-items:center; justify-content:center; flex-direction: column;
+    background: #01020a;
+    color: var(--text-main);
+    text-align:center;
+  }
+  #landing-overlay.visible{ display:flex; }
+  #landing-overlay img{
+    width: min(72%, 340px); border-radius: 50%; object-fit: cover; aspect-ratio: 1/1;
+    border: 2px solid var(--accent2);
+    box-shadow: 0 0 60px rgba(95,200,255,0.35);
+    animation: landingPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes landingPulse{ 0%,100%{ box-shadow: 0 0 40px rgba(95,200,255,0.25);} 50%{ box-shadow: 0 0 70px rgba(95,200,255,0.55);} }
+  #landing-overlay .landing-title{
+    margin-top: 18px; font-size: 15px; letter-spacing: 3px; color: var(--accent2); font-weight:700;
+  }
+  #landing-overlay .landing-sub{ font-size: 12px; color: var(--text-dim); margin-top:6px; }
+  #landing-bar{ width: 220px; height: 4px; background:#1b2050; border-radius:4px; margin-top:14px; overflow:hidden; }
+  #landing-bar-fill{ height:100%; width:0%; background: linear-gradient(90deg, var(--accent2), var(--good)); }
+  .scanline{
+    position:absolute; inset:0; pointer-events:none; opacity:0.15;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0px, rgba(255,255,255,0.6) 1px, transparent 1px, transparent 3px);
   }
 </style>
 </head>
@@ -114,18 +182,31 @@
     <div class="title">🪐 JOVIAN QUEST</div>
     <div class="stats">
       <span id="score-display">Score: 0</span>
-      <button id="log-btn">Mission Log</button>
+      <div id="progress-wrap">
+        <span id="progress-label">Moons: 0/4</span>
+        <div id="progress-track"><div id="progress-fill"></div></div>
+      </div>
+      <button id="log-btn">📖 Mission Log</button>
     </div>
   </div>
   <div id="game-container"></div>
   <div id="toast" class="tooltip-toast"></div>
+
+  <!-- Landing sequence -->
+  <div id="landing-overlay">
+    <div class="scanline"></div>
+    <img id="landing-img" src="" alt="" />
+    <div class="landing-title" id="landing-title"></div>
+    <div class="landing-sub" id="landing-sub"></div>
+    <div id="landing-bar"><div id="landing-bar-fill"></div></div>
+  </div>
 
   <!-- Intro -->
   <div id="intro-overlay" class="overlay visible">
     <div class="panel">
       <h2>Jovian Quest: A Journey Through Jupiter and Its Moons</h2>
       <p>You are the pilot of a research probe entering the Jupiter system. Your mission: survey Jupiter and its four largest moons — <b>Io, Europa, Ganymede,</b> and <b>Callisto</b> — collecting scientific data along the way.</p>
-      <p>At each destination, scan the surface, atmosphere, and science highlights, record your findings in the Mission Log, then complete a knowledge challenge to unlock the next moon. Along the way you'll uncover why this giant planet and its moons matter for understanding how our Solar System formed — and where else in it life might exist.</p>
+      <p>At each destination, initiate a landing sequence, scan the surface, atmosphere, and science highlights, record your findings in the Mission Log, then complete a knowledge challenge to unlock the next moon. Real photographs captured by NASA spacecraft appear as you touch down, alongside why this giant planet and its moons matter for understanding how our Solar System formed — and where else in it life might exist.</p>
       <div class="panel-actions">
         <button class="btn" id="begin-btn">Begin Mission 🚀</button>
       </div>
@@ -136,6 +217,7 @@
   <div id="fact-overlay" class="overlay">
     <div class="panel">
       <h2 id="fact-title"></h2>
+      <div id="fact-photo-slot"></div>
       <p id="fact-text"></p>
       <div class="panel-actions">
         <button class="btn" id="fact-close-btn">Log & Continue</button>
@@ -193,33 +275,46 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.70.0/phaser.min.js"></script>
 <script>
-/* =========================================================
-   JOVIAN QUEST — data
-   ========================================================= */
+/* =========================================================================
+   JOVIAN QUEST — DATA
+   All celestial bodies (Jupiter + its four Galilean moons) live in one map
+   so the Orbit and Body scenes can treat them uniformly instead of
+   duplicating logic per-object.
+   ========================================================================= */
 
-const JUPITER = {
-  key: 'jupiter',
-  name: 'Jupiter',
-  color: 0xd9a463,
-  facts: [
-    "Jupiter is the largest planet in the Solar System — more than 1,300 Earths could fit inside it, yet it spins so fast that a single day lasts only about 10 hours.",
-    "It is a gas giant made almost entirely of hydrogen and helium, with no true solid surface for a probe to land on.",
-    "The Great Red Spot is a colossal storm, wider than Earth, that has been swirling for at least a few centuries.",
-    "Jupiter's enormous gravity shaped the early Solar System, flinging some debris out and shepherding other material into the orderly orbits planets follow today. It also has dozens upon dozens of known moons, more than any other planet."
-  ]
-};
+const BODY_ORDER = ['io', 'europa', 'ganymede', 'callisto']; // progression order (moons only)
 
-const MOON_ORDER = ['io', 'europa', 'ganymede', 'callisto'];
-
-const MOONS = {
-  io: {
-    key: 'io', name: 'Io', order: 0,
-    baseColor: 0xE8C15A, orbitRadius: 90, orbitSpeed: 0.9, size: 46,
-    diameter: '3,643 km', mass: '~8.9 × 10^22 kg', atmosphere: 'Extremely thin sulfur dioxide',
+const BODIES = {
+  jupiter: {
+    key: 'jupiter', name: 'Jupiter', kind: 'planet',
+    color: 0xd9a463,
+    diameter: '139,820 km', mass: '~1.90 × 10^27 kg', dayLength: '~9.9 hours', atmosphere: 'Hydrogen & helium, no solid surface',
+    image: {
+      pia: 'PIA04866',
+      url: 'https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia04/pia04866/PIA04866.jpg?w=900&h=900&fit=clip',
+      credit: 'NASA/JPL/Space Science Institute',
+      caption: "Cassini's true-color portrait of Jupiter — the most detailed global view ever assembled, Dec. 29, 2000."
+    },
     hotspots: {
-      surface: "Io's surface is covered in sulfur compounds in shades of yellow, orange, and red, dotted with hundreds of active volcanoes and vast lava flows. Some eruptions blast material hundreds of kilometers into space.",
-      atmosphere: "Io has an extremely thin atmosphere made mostly of sulfur dioxide gas, constantly resupplied by its volcanoes. It's so thin that much of it freezes onto the ground at night.",
-      science: "Io's extreme volcanism comes from tidal heating: Jupiter's gravity, combined with tugs from neighboring moons Europa and Ganymede, squeezes and flexes Io's interior, generating tremendous internal heat."
+      clouds: { label: 'Cloud Bands & the Great Red Spot', text: "Jupiter's stripes are bands of clouds racing in opposite directions, and its Great Red Spot is a storm wider than Earth that has raged for at least a few centuries." },
+      interior: { label: 'Composition & Interior', text: "Jupiter is a gas giant made almost entirely of hydrogen and helium, with no true solid surface for a probe to land on — pressure and temperature simply increase with depth until the gas behaves like a liquid metal." },
+      magnetosphere: { label: 'Gravity & Magnetosphere', text: "Jupiter's enormous gravity shaped the early Solar System, flinging some debris out and shepherding other material into the orderly orbits planets follow today. It also hosts dozens of moons and the largest magnetosphere of any planet." }
+    }
+  },
+  io: {
+    key: 'io', name: 'Io', kind: 'moon', order: 0,
+    color: 0xE8C15A, orbitRadius: 100, orbitPeriodDays: 1.769, size: 46,
+    diameter: '3,643 km', mass: '~8.9 × 10^22 kg', atmosphere: 'Extremely thin sulfur dioxide',
+    image: {
+      pia: 'PIA00583',
+      url: 'https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia00/pia00583/PIA00583.jpg?w=900&h=900&fit=clip',
+      credit: 'NASA/JPL/University of Arizona',
+      caption: "Galileo spacecraft's highest-resolution global view of volcanic Io."
+    },
+    hotspots: {
+      surface: { label: 'Surface Scan', text: "Io's surface is covered in sulfur compounds in shades of yellow, orange, and red, dotted with hundreds of active volcanoes and vast lava flows. Some eruptions blast material hundreds of kilometers into space." },
+      atmosphere: { label: 'Atmosphere Scan', text: "Io has an extremely thin atmosphere made mostly of sulfur dioxide gas, constantly resupplied by its volcanoes. It's so thin that much of it freezes onto the ground at night." },
+      science: { label: 'Science Data', text: "Io's extreme volcanism comes from tidal heating: Jupiter's gravity, combined with tugs from neighboring moons Europa and Ganymede, squeezes and flexes Io's interior, generating tremendous internal heat." }
     },
     quiz: [
       { q: "What makes Io unique among moons in our Solar System?", options: ["It has a thick breathable atmosphere", "It is the most volcanically active body known", "It has visible rings", "It is made entirely of ice"], answer: 1, explain: "Io's hundreds of active volcanoes make it the most volcanically active body in the Solar System." },
@@ -228,13 +323,19 @@ const MOONS = {
     ]
   },
   europa: {
-    key: 'europa', name: 'Europa', order: 1,
-    baseColor: 0xCFE9F2, orbitRadius: 145, orbitSpeed: 0.55, size: 42,
+    key: 'europa', name: 'Europa', kind: 'moon', order: 1,
+    color: 0xCFE9F2, orbitRadius: 155, orbitPeriodDays: 3.551, size: 42,
     diameter: '3,122 km', mass: '~4.8 × 10^22 kg', atmosphere: 'Extremely thin oxygen',
+    image: {
+      pia: 'PIA19048',
+      url: 'https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia19/pia19048/PIA19048.jpg?w=900&h=900&fit=clip',
+      credit: 'NASA/JPL-Caltech/SETI Institute',
+      caption: "Reprocessed natural-color view of Europa's icy, cracked shell from the Galileo spacecraft."
+    },
     hotspots: {
-      surface: "Europa's surface is a smooth shell of water ice, crisscrossed by long reddish-brown cracks called lineae. Very few craters suggest the surface is geologically young and constantly renewed.",
-      atmosphere: "Europa has an extremely thin oxygen atmosphere, likely produced when charged particles from Jupiter's radiation belts split apart water molecules at the icy surface.",
-      science: "Beneath its icy shell, Europa is thought to hide a global saltwater ocean holding more water than all of Earth's oceans combined — making it one of the top targets in the search for life beyond Earth."
+      surface: { label: 'Surface Scan', text: "Europa's surface is a smooth shell of water ice, crisscrossed by long reddish-brown cracks called lineae. Very few craters suggest the surface is geologically young and constantly renewed." },
+      atmosphere: { label: 'Atmosphere Scan', text: "Europa has an extremely thin oxygen atmosphere, likely produced when charged particles from Jupiter's radiation belts split apart water molecules at the icy surface." },
+      science: { label: 'Science Data', text: "Beneath its icy shell, Europa is thought to hide a global saltwater ocean holding more water than all of Earth's oceans combined — making it one of the top targets in the search for life beyond Earth." }
     },
     quiz: [
       { q: "What most likely lies beneath Europa's icy crust?", options: ["A core of solid iron", "A subsurface saltwater ocean", "A layer of frozen methane", "Nothing — it's solid ice all the way down"], answer: 1, explain: "Evidence strongly points to a global subsurface ocean beneath Europa's ice shell." },
@@ -243,13 +344,19 @@ const MOONS = {
     ]
   },
   ganymede: {
-    key: 'ganymede', name: 'Ganymede', order: 2,
-    baseColor: 0xA9987C, orbitRadius: 205, orbitSpeed: 0.32, size: 52,
+    key: 'ganymede', name: 'Ganymede', kind: 'moon', order: 2,
+    color: 0xA9987C, orbitRadius: 210, orbitPeriodDays: 7.155, size: 52,
     diameter: '5,268 km', mass: '~1.48 × 10^23 kg', atmosphere: 'Extremely thin oxygen',
+    image: {
+      pia: 'PIA00716',
+      url: 'https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia00/pia00716/PIA00716.jpg?w=900&h=900&fit=clip',
+      credit: 'NASA/JPL',
+      caption: "Natural-color view of Ganymede from Galileo's first close encounter."
+    },
     hotspots: {
-      surface: "Ganymede's surface is a patchwork of ancient, heavily cratered dark terrain next to younger, lighter regions carved with long grooves and ridges from past tectonic activity.",
-      atmosphere: "Ganymede has an extremely thin oxygen atmosphere, and its unique magnetic field may even produce faint auroras near its poles.",
-      science: "Ganymede is the only moon in the Solar System known to generate its own magnetic field, and scientists think it may also hide a deep saltwater ocean sandwiched between layers of ice."
+      surface: { label: 'Surface Scan', text: "Ganymede's surface is a patchwork of ancient, heavily cratered dark terrain next to younger, lighter regions carved with long grooves and ridges from past tectonic activity." },
+      atmosphere: { label: 'Atmosphere Scan', text: "Ganymede has an extremely thin oxygen atmosphere, and its unique magnetic field may even produce faint auroras near its poles." },
+      science: { label: 'Science Data', text: "Ganymede is the only moon in the Solar System known to generate its own magnetic field, and scientists think it may also hide a deep saltwater ocean sandwiched between layers of ice." }
     },
     quiz: [
       { q: "What makes Ganymede special among all moons in the Solar System?", options: ["It is the largest moon, even bigger than Mercury", "It has visible rings", "It is the closest moon to Jupiter", "It has liquid water on its surface"], answer: 0, explain: "Ganymede is the largest moon in the Solar System, larger than the planet Mercury." },
@@ -258,13 +365,19 @@ const MOONS = {
     ]
   },
   callisto: {
-    key: 'callisto', name: 'Callisto', order: 3,
-    baseColor: 0x8C7B6E, orbitRadius: 265, orbitSpeed: 0.2, size: 50,
+    key: 'callisto', name: 'Callisto', kind: 'moon', order: 3,
+    color: 0x8C7B6E, orbitRadius: 270, orbitPeriodDays: 16.689, size: 50,
     diameter: '4,821 km', mass: '~1.08 × 10^23 kg', atmosphere: 'Extremely thin carbon dioxide traces',
+    image: {
+      pia: 'PIA03456',
+      url: 'https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia03/pia03456/PIA03456.jpg?w=900&h=900&fit=clip',
+      credit: 'NASA/JPL/DLR',
+      caption: "The only complete global color image of Callisto obtained by Galileo, May 2001."
+    },
     hotspots: {
-      surface: "Callisto has one of the oldest and most heavily cratered surfaces in the Solar System, preserving a record of impacts stretching back billions of years.",
-      atmosphere: "Callisto has an extremely thin atmosphere with only faint traces of carbon dioxide, offering almost no protection from space weathering.",
-      science: "Despite showing few signs of ongoing geological activity, some data hint that Callisto may also hide a salty subsurface ocean, adding it to the list of ocean worlds worth exploring."
+      surface: { label: 'Surface Scan', text: "Callisto has one of the oldest and most heavily cratered surfaces in the Solar System, preserving a record of impacts stretching back billions of years." },
+      atmosphere: { label: 'Atmosphere Scan', text: "Callisto has an extremely thin atmosphere with only faint traces of carbon dioxide, offering almost no protection from space weathering." },
+      science: { label: 'Science Data', text: "Despite showing few signs of ongoing geological activity, some data hint that Callisto may also hide a salty subsurface ocean, adding it to the list of ocean worlds worth exploring." }
     },
     quiz: [
       { q: "What is most notable about Callisto's surface?", options: ["It is smooth and crater-free", "It is heavily cratered and extremely ancient", "It is covered in active volcanoes", "It is covered in deep grooves only"], answer: 1, explain: "Callisto's surface is one of the most heavily cratered in the Solar System." },
@@ -274,15 +387,16 @@ const MOONS = {
   }
 };
 
-/* =========================================================
-   Game State (in-memory, resets on page reload)
-   ========================================================= */
+/* =========================================================================
+   GAME STATE (in-memory, resets on page reload)
+   ========================================================================= */
 const GameState = {
   score: 0,
   unlocked: { io: true, europa: false, ganymede: false, callisto: false },
   completed: { io: false, europa: false, ganymede: false, callisto: false },
   visited: { jupiter: {}, io: {}, europa: {}, ganymede: {}, callisto: {} },
-  missionLog: [] // {who, title, text}
+  missionLog: [], // {who, title, text}
+  _completionShown: false
 };
 
 function addScore(n){
@@ -294,6 +408,12 @@ function logFact(who, title, text){
   GameState.missionLog.push({ who, title, text });
 }
 
+function updateProgressHud(){
+  const done = BODY_ORDER.filter(k => GameState.completed[k]).length;
+  document.getElementById('progress-label').textContent = `Moons: ${done}/${BODY_ORDER.length}`;
+  document.getElementById('progress-fill').style.width = (done / BODY_ORDER.length * 100) + '%';
+}
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -302,9 +422,61 @@ function showToast(msg){
   showToast._h = setTimeout(() => t.style.display = 'none', 2200);
 }
 
-/* =========================================================
+/* =========================================================================
+   REAL NASA PHOTO HELPER
+   Renders a plain <img> (no canvas/CORS involved) with a graceful text
+   fallback if the asset ever fails to load.
+   ========================================================================= */
+function nasaPhotoHTML(image, sizeClass){
+  const cls = sizeClass || 'nasa-photo';
+  const fallbackUrl = `https://science.nasa.gov/?s=${image.pia}`;
+  return `
+    <img class="${cls}" src="${image.url}" alt="${image.caption.replace(/"/g,'&quot;')}"
+      onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'photo-fallback',innerHTML:'📷 Photo unavailable right now — <a href=&quot;${fallbackUrl}&quot; target=&quot;_blank&quot; style=&quot;color:var(--accent2)&quot;>view ${image.pia} on NASA.gov</a>'}))" />
+    <div class="nasa-credit">${image.caption} — Credit: ${image.credit} (${image.pia})</div>
+  `;
+}
+
+/* =========================================================================
+   LANDING SEQUENCE
+   A short DOM-based "descent" moment with a real NASA photograph before
+   the Phaser scene for that body loads.
+   ========================================================================= */
+function beginLanding(bodyKey, onDone){
+  const body = BODIES[bodyKey];
+  const overlay = document.getElementById('landing-overlay');
+  const img = document.getElementById('landing-img');
+  const title = document.getElementById('landing-title');
+  const sub = document.getElementById('landing-sub');
+  const bar = document.getElementById('landing-bar-fill');
+
+  img.src = body.image.url;
+  img.alt = body.image.caption;
+  img.onerror = () => { img.style.display = 'none'; };
+  img.onload = () => { img.style.display = 'block'; };
+  title.textContent = body.kind === 'planet' ? `DESCENDING INTO ${body.name.toUpperCase()}` : `APPROACHING ${body.name.toUpperCase()}`;
+  sub.textContent = `${body.image.credit} · ${body.image.pia}`;
+  bar.style.width = '0%';
+  overlay.classList.add('visible');
+
+  requestAnimationFrame(() => {
+    bar.style.transition = 'width 1.1s linear';
+    bar.style.width = '100%';
+  });
+
+  setTimeout(() => {
+    overlay.classList.remove('visible');
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    onDone();
+  }, 1250);
+}
+
+/* =========================================================================
    Texture generation helpers (raw canvas, clipped to circle)
-   ========================================================= */
+   Used for the stylized in-game sprites — kept separate from the real
+   NASA photography, which is shown in DOM panels instead.
+   ========================================================================= */
 function circleTexture(scene, key, size, drawFn){
   const canvas = document.createElement('canvas');
   canvas.width = size; canvas.height = size;
@@ -320,7 +492,7 @@ function circleTexture(scene, key, size, drawFn){
 
 function rand(a,b){ return a + Math.random()*(b-a); }
 
-function makeStarfield(scene, key, w, h){
+function makeStarfield(scene, key, w, h, density){
   const canvas = document.createElement('canvas');
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
@@ -329,7 +501,7 @@ function makeStarfield(scene, key, w, h){
   grad.addColorStop(1, '#05060f');
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,w,h);
-  for(let i=0;i<160;i++){
+  for(let i=0;i<density;i++){
     const x = rand(0,w), y = rand(0,h), r = rand(0.4,1.6);
     ctx.globalAlpha = rand(0.3,1);
     ctx.fillStyle = '#ffffff';
@@ -347,7 +519,6 @@ function makeJupiterTexture(scene, key, size){
       ctx.fillStyle = c;
       ctx.fillRect(0, i*bandH, s, bandH + 1);
     });
-    // swirl streaks
     ctx.globalAlpha = 0.25;
     for(let i=0;i<10;i++){
       ctx.strokeStyle = '#7a4a2a';
@@ -359,7 +530,6 @@ function makeJupiterTexture(scene, key, size){
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
-    // Great Red Spot
     ctx.fillStyle = '#c1502f';
     ctx.beginPath();
     ctx.ellipse(s*0.32, s*0.62, s*0.16, s*0.09, 0.15, 0, Math.PI*2);
@@ -447,19 +617,21 @@ function makeHotspotTexture(scene, key, color){
   scene.textures.addCanvas(key, canvas);
 }
 
-/* =========================================================
+/* =========================================================================
    Boot Scene
-   ========================================================= */
+   ========================================================================= */
 class BootScene extends Phaser.Scene {
   constructor(){ super('Boot'); }
   create(){
-    makeStarfield(this, 'stars-orbit', 820, 560);
-    makeStarfield(this, 'stars-moon', 820, 560);
+    makeStarfield(this, 'stars-orbit-far', 900, 580, 90);
+    makeStarfield(this, 'stars-orbit-near', 900, 580, 60);
+    makeStarfield(this, 'stars-body', 900, 580, 130);
     makeJupiterTexture(this, 'tex-jupiter', 140);
-    MOON_ORDER.forEach(k => {
-      const m = MOONS[k];
-      makeMoonTexture(this, 'tex-' + k, m.size*2, k, Phaser.Display.Color.IntegerToColor(m.baseColor).rgba);
-      makeMoonTexture(this, 'tex-' + k + '-big', 240, k, Phaser.Display.Color.IntegerToColor(m.baseColor).rgba);
+    makeJupiterTexture(this, 'tex-jupiter-big', 260);
+    BODY_ORDER.forEach(k => {
+      const m = BODIES[k];
+      makeMoonTexture(this, 'tex-' + k, m.size*2, k, Phaser.Display.Color.IntegerToColor(m.color).rgba);
+      makeMoonTexture(this, 'tex-' + k + '-big', 240, k, Phaser.Display.Color.IntegerToColor(m.color).rgba);
     });
     makeHotspotTexture(this, 'tex-hotspot-open', '#5fc8ff');
     makeHotspotTexture(this, 'tex-hotspot-done', '#6bffb0');
@@ -467,53 +639,60 @@ class BootScene extends Phaser.Scene {
   }
 }
 
-/* =========================================================
-   Orbit Scene
-   ========================================================= */
+/* =========================================================================
+   Orbit Scene — the Jupiter system overview
+   ========================================================================= */
+const ORBIT_CX = 450, ORBIT_CY = 300;
+const ORBIT_Y_SQUASH = 0.55;     // 2.5D ellipse compression
+const ORBIT_ANGULAR_BASE = 0.30; // rad/sec for Io; others scaled by real orbital-period ratios
+
 class OrbitScene extends Phaser.Scene {
   constructor(){ super('Orbit'); }
   create(){
-    this.add.image(410, 280, 'stars-orbit').setDisplaySize(820,560);
-    this.add.text(410, 24, 'The Jupiter System', { fontFamily:'Segoe UI', fontSize:'20px', color:'#f4a940', fontStyle:'bold' }).setOrigin(0.5,0);
+    this.add.image(ORBIT_CX, ORBIT_CY, 'stars-orbit-far').setDisplaySize(900,580).setScrollFactor(0);
+    this.nearStars = this.add.image(ORBIT_CX, ORBIT_CY, 'stars-orbit-near').setDisplaySize(940,600).setAlpha(0.7);
 
-    const cx = 410, cy = 300;
-    const jupiter = this.add.image(cx, cy, 'tex-jupiter').setInteractive({ useHandCursor:true });
-    this.tweens.add({ targets: jupiter, angle: 360, duration: 60000, repeat: -1 });
+    this.add.text(ORBIT_CX, 20, 'The Jupiter System', { fontFamily:'Segoe UI', fontSize:'21px', color:'#f4a940', fontStyle:'bold' }).setOrigin(0.5,0);
+    this.add.text(ORBIT_CX, 46, 'Orbital speeds shown to scale — tap a world to begin a landing sequence', { fontFamily:'Segoe UI', fontSize:'11.5px', color:'#9aa4d6' }).setOrigin(0.5,0);
+
+    const jupiter = this.add.image(ORBIT_CX, ORBIT_CY, 'tex-jupiter').setInteractive({ useHandCursor:true });
+    this.tweens.add({ targets: jupiter, angle: 360, duration: 70000, repeat: -1 });
     jupiter.on('pointerdown', () => this.showJupiterInfo());
-    this.add.text(cx, cy+78, 'Jupiter', { fontFamily:'Segoe UI', fontSize:'13px', color:'#eaf1ff' }).setOrigin(0.5);
+    this.add.text(ORBIT_CX, ORBIT_CY+78, 'Jupiter', { fontFamily:'Segoe UI', fontSize:'13px', color:'#eaf1ff' }).setOrigin(0.5);
 
-    // orbit rings (visual)
-    MOON_ORDER.forEach(k => {
-      const m = MOONS[k];
-      const ring = this.add.circle(cx, cy, m.orbitRadius);
+    // orbit rings (visual guide)
+    BODY_ORDER.forEach(k => {
+      const m = BODIES[k];
+      const ring = this.add.ellipse(ORBIT_CX, ORBIT_CY, m.orbitRadius*2, m.orbitRadius*2*ORBIT_Y_SQUASH);
       ring.setStrokeStyle(1, 0x2c3670, 0.5);
     });
 
     this.moonSprites = {};
     this.moonAngles = {};
-    MOON_ORDER.forEach((k, idx) => {
-      const m = MOONS[k];
+    BODY_ORDER.forEach((k, idx) => {
+      const m = BODIES[k];
       this.moonAngles[k] = idx * (Math.PI/2);
-      const spr = this.add.image(cx + m.orbitRadius, cy, 'tex-' + k).setInteractive({ useHandCursor:true });
+      const spr = this.add.image(ORBIT_CX + m.orbitRadius, ORBIT_CY, 'tex-' + k).setInteractive({ useHandCursor:true });
       spr.setScale(m.size/(m.size*2*0.9));
       this.moonSprites[k] = spr;
 
-      const label = this.add.text(0,0,m.name, { fontFamily:'Segoe UI', fontSize:'12px', color:'#eaf1ff' }).setOrigin(0.5);
+      const label = this.add.text(0,0,m.name, { fontFamily:'Segoe UI', fontSize:'12px', color:'#eaf1ff', backgroundColor:'rgba(5,6,15,0.55)', padding:{x:4,y:1} }).setOrigin(0.5);
       spr.label = label;
+      spr.labelBaseOffset = 20 + (m.size - 42) * 0.25; // slightly more room for bigger moons
 
-      const lock = this.add.text(0,0,'🔒', { fontSize:'16px' }).setOrigin(0.5);
+      const lock = this.add.text(0,0,'🔒', { fontSize:'15px' }).setOrigin(0.5);
       spr.lockIcon = lock;
 
-      const check = this.add.text(0,0,'✅', { fontSize:'14px' }).setOrigin(0.5);
+      const check = this.add.text(0,0,'✅', { fontSize:'13px' }).setOrigin(0.5);
       check.setVisible(false);
       spr.checkIcon = check;
 
       spr.on('pointerdown', () => {
         if(GameState.unlocked[k]){
-          this.scene.start('Moon', { moonKey: k });
+          this.travelTo(k);
         } else {
-          const prevIdx = MOON_ORDER.indexOf(k) - 1;
-          const prevName = prevIdx >= 0 ? MOONS[MOON_ORDER[prevIdx]].name : '';
+          const prevIdx = BODY_ORDER.indexOf(k) - 1;
+          const prevName = prevIdx >= 0 ? BODIES[BODY_ORDER[prevIdx]].name : '';
           showToast('🔒 Locked — complete ' + prevName + '\'s mission first!');
         }
       });
@@ -523,27 +702,46 @@ class OrbitScene extends Phaser.Scene {
     this.maybeShowCompletion();
   }
 
+  travelTo(bodyKey){
+    this.cameras.main.fadeOut(300, 5, 7, 15);
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      beginLanding(bodyKey, () => this.scene.start('Body', { bodyKey }));
+    });
+  }
+
   updateLockVisuals(){
-    MOON_ORDER.forEach(k => {
+    BODY_ORDER.forEach(k => {
       const spr = this.moonSprites[k];
       spr.setAlpha(GameState.unlocked[k] ? 1 : 0.45);
       spr.lockIcon.setVisible(!GameState.unlocked[k]);
       spr.checkIcon.setVisible(!!GameState.completed[k]);
     });
+    updateProgressHud();
   }
 
   showJupiterInfo(){
-    const key = 'jupiter-facts';
     if(!GameState.visited.jupiter.info){
       GameState.visited.jupiter.info = true;
-      JUPITER.facts.forEach(f => logFact('Jupiter', 'Overview', f));
-      addScore(10);
+      addScore(5);
     }
-    openFactPanel(JUPITER.name, JUPITER.facts.join(' '));
+    const body = BODIES.jupiter;
+    document.getElementById('fact-title').textContent = body.name + ' — Overview';
+    document.getElementById('fact-photo-slot').innerHTML = nasaPhotoHTML(body.image);
+    document.getElementById('fact-text').innerHTML =
+      `Jupiter is the largest planet in the Solar System — more than 1,300 Earths could fit inside it, yet it spins so fast that a single day lasts only about 10 hours.<br><br>` +
+      `<button class="btn" style="margin-top:6px;" id="jupiter-descend-btn">Descend into Jupiter 🪐</button>`;
+    document.getElementById('fact-overlay').classList.add('visible');
+    const descendBtn = document.getElementById('jupiter-descend-btn');
+    if(descendBtn){
+      descendBtn.addEventListener('click', () => {
+        document.getElementById('fact-overlay').classList.remove('visible');
+        this.travelTo('jupiter');
+      }, { once:true });
+    }
   }
 
   maybeShowCompletion(){
-    const allDone = MOON_ORDER.every(k => GameState.completed[k]);
+    const allDone = BODY_ORDER.every(k => GameState.completed[k]);
     if(allDone && !GameState._completionShown){
       GameState._completionShown = true;
       setTimeout(() => openCompletionPanel(), 400);
@@ -551,103 +749,157 @@ class OrbitScene extends Phaser.Scene {
   }
 
   update(time, delta){
-    const cx = 410, cy = 300;
-    MOON_ORDER.forEach(k => {
-      const m = MOONS[k];
-      this.moonAngles[k] += (delta/1000) * m.orbitSpeed * 0.3;
-      const x = cx + Math.cos(this.moonAngles[k]) * m.orbitRadius;
-      const y = cy + Math.sin(this.moonAngles[k]) * m.orbitRadius * 0.5;
+    const dt = delta/1000;
+    BODY_ORDER.forEach(k => {
+      const m = BODIES[k];
+      // real relative angular speed, derived from each moon's actual orbital period
+      const speedRatio = BODIES.io.orbitPeriodDays / m.orbitPeriodDays;
+      this.moonAngles[k] += dt * ORBIT_ANGULAR_BASE * speedRatio;
+      const x = ORBIT_CX + Math.cos(this.moonAngles[k]) * m.orbitRadius;
+      const y = ORBIT_CY + Math.sin(this.moonAngles[k]) * m.orbitRadius * ORBIT_Y_SQUASH;
       const spr = this.moonSprites[k];
       spr.setPosition(x,y);
-      spr.label.setPosition(x, y + 22);
+      spr.setDepth(y);
+      spr.label.setPosition(x, y + spr.labelBaseOffset);
+      spr.label.setDepth(y + 1);
       spr.lockIcon.setPosition(x, y);
+      spr.lockIcon.setDepth(y + 1);
       spr.checkIcon.setPosition(x + 16, y - 16);
+      spr.checkIcon.setDepth(y + 1);
     });
+    this.resolveLabelOverlaps();
+  }
+
+  // Cheap pairwise relaxation so two moon-name labels never sit on top of
+  // one another when their projected positions pass close together.
+  resolveLabelOverlaps(){
+    const labels = BODY_ORDER.map(k => this.moonSprites[k].label);
+    const passes = 3;
+    for(let p=0; p<passes; p++){
+      for(let i=0; i<labels.length; i++){
+        for(let j=i+1; j<labels.length; j++){
+          const a = labels[i], b = labels[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const minDx = 46, minDy = 16;
+          if(Math.abs(dx) < minDx && Math.abs(dy) < minDy){
+            const push = (minDy - Math.abs(dy))/2 + 1;
+            if(a.y <= b.y){ a.y -= push; b.y += push; } else { a.y += push; b.y -= push; }
+          }
+        }
+      }
+    }
   }
 }
 
-/* =========================================================
-   Moon Scene
-   ========================================================= */
-class MoonScene extends Phaser.Scene {
-  constructor(){ super('Moon'); }
-  init(data){ this.moonKey = data.moonKey; }
+/* =========================================================================
+   Body Scene — shared "landed" view for Jupiter and every moon
+   ========================================================================= */
+class BodyScene extends Phaser.Scene {
+  constructor(){ super('Body'); }
+  init(data){ this.bodyKey = data.bodyKey; }
   create(){
-    const m = MOONS[this.moonKey];
-    this.moonData = m;
+    const body = BODIES[this.bodyKey];
+    this.bodyData = body;
+    this.cameras.main.fadeIn(350, 5, 7, 15);
 
-    this.add.image(410, 280, 'stars-moon').setDisplaySize(820,560);
+    this.add.image(450, 290, 'stars-body').setDisplaySize(900,580);
 
     this.add.text(20, 16, '◀ Back to Orbit', { fontFamily:'Segoe UI', fontSize:'14px', color:'#5fc8ff', backgroundColor:'#141a3d', padding:{x:8,y:5} })
       .setInteractive({ useHandCursor:true })
-      .on('pointerdown', () => this.scene.start('Orbit'));
+      .on('pointerdown', () => this.returnToOrbit());
 
-    this.add.text(410, 20, m.name, { fontFamily:'Segoe UI', fontSize:'22px', color:'#f4a940', fontStyle:'bold' }).setOrigin(0.5,0);
-    this.add.text(410, 50, `Diameter: ${m.diameter}   •   Mass: ${m.mass}   •   Atmosphere: ${m.atmosphere}`,
-      { fontFamily:'Segoe UI', fontSize:'12px', color:'#9aa4d6' }).setOrigin(0.5,0);
+    this.add.text(450, 20, body.name, { fontFamily:'Segoe UI', fontSize:'22px', color:'#f4a940', fontStyle:'bold' }).setOrigin(0.5,0);
+    const statLine = body.kind === 'planet'
+      ? `Diameter: ${body.diameter}   •   Mass: ${body.mass}   •   Day length: ${body.dayLength}`
+      : `Diameter: ${body.diameter}   •   Mass: ${body.mass}   •   Atmosphere: ${body.atmosphere}`;
+    this.add.text(450, 50, statLine, { fontFamily:'Segoe UI', fontSize:'12px', color:'#9aa4d6' }).setOrigin(0.5,0);
 
-    const cx = 410, cy = 300;
-    const bigMoon = this.add.image(cx, cy, 'tex-' + this.moonKey + '-big');
-    this.tweens.add({ targets: bigMoon, angle: 360, duration: 40000, repeat: -1 });
+    this.add.text(880, 16, '📷 NASA Photo', { fontFamily:'Segoe UI', fontSize:'13px', color:'#1a1200', backgroundColor:'#f4a940', padding:{x:10,y:6} })
+      .setOrigin(1,0)
+      .setInteractive({ useHandCursor:true })
+      .on('pointerdown', () => this.showRealPhoto());
 
-    const positions = [
-      { x: cx - 150, y: cy - 40, id: 'surface', label: 'Surface Scan' },
-      { x: cx + 150, y: cy - 40, id: 'atmosphere', label: 'Atmosphere Scan' },
-      { x: cx, y: cy + 150, id: 'science', label: 'Science Data' }
-    ];
+    const cx = 450, cy = 300;
+    const texKey = (this.bodyKey === 'jupiter' ? 'tex-jupiter-big' : 'tex-' + this.bodyKey + '-big');
+    const bigBody = this.add.image(cx, cy, texKey);
+    this.tweens.add({ targets: bigBody, angle: 360, duration: 45000, repeat: -1 });
+
+    const hotspotIds = Object.keys(body.hotspots);
+    const layoutForCount = {
+      3: [ { x: cx - 160, y: cy - 40 }, { x: cx + 160, y: cy - 40 }, { x: cx, y: cy + 155 } ]
+    };
+    const positions = (layoutForCount[hotspotIds.length] || layoutForCount[3]).map((p, i) => ({ ...p, id: hotspotIds[i], label: body.hotspots[hotspotIds[i]].label }));
+
     this.hotspotSprites = {};
     positions.forEach(p => {
-      const visited = !!GameState.visited[this.moonKey][p.id];
+      const visited = !!GameState.visited[this.bodyKey][p.id];
       const spr = this.add.image(p.x, p.y, visited ? 'tex-hotspot-done' : 'tex-hotspot-open').setInteractive({ useHandCursor:true });
       this.tweens.add({ targets: spr, scale: 1.25, duration: 700, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
-      this.add.text(p.x, p.y + 20, p.label, { fontFamily:'Segoe UI', fontSize:'11px', color:'#eaf1ff' }).setOrigin(0.5);
-      spr.on('pointerdown', () => this.visitHotspot(p.id, p.label, spr));
+      this.add.text(p.x, p.y + 20, p.label, { fontFamily:'Segoe UI', fontSize:'11px', color:'#eaf1ff', align:'center', wordWrap:{ width:150 } }).setOrigin(0.5,0);
+      spr.on('pointerdown', () => this.visitHotspot(p.id, spr));
       this.hotspotSprites[p.id] = spr;
     });
 
-    this.challengeBtn = this.add.text(cx, 470, GameState.completed[this.moonKey] ? '✅ Mission Complete' : 'Start Challenge 🎯',
-      { fontFamily:'Segoe UI', fontSize:'16px', color: GameState.completed[this.moonKey] ? '#6bffb0' : '#1a1200',
-        backgroundColor: GameState.completed[this.moonKey] ? 'transparent' : '#f4a940', padding:{x:16,y:8} })
-      .setOrigin(0.5);
-    this.updateChallengeButton();
+    if(body.quiz){
+      this.challengeBtn = this.add.text(cx, 500, GameState.completed[this.bodyKey] ? '✅ Mission Complete' : 'Start Challenge 🎯',
+        { fontFamily:'Segoe UI', fontSize:'16px', color: GameState.completed[this.bodyKey] ? '#6bffb0' : '#1a1200',
+          backgroundColor: GameState.completed[this.bodyKey] ? 'transparent' : '#f4a940', padding:{x:16,y:8} })
+        .setOrigin(0.5);
+      this.updateChallengeButton();
+    } else {
+      this.add.text(cx, 500, 'Jupiter has no solid surface to land on — explore each layer above, then return to orbit.',
+        { fontFamily:'Segoe UI', fontSize:'12.5px', color:'#9aa4d6', align:'center', wordWrap:{ width: 460 } }).setOrigin(0.5);
+    }
   }
 
-  visitHotspot(id, label, spr){
-    const m = this.moonData;
-    if(!GameState.visited[this.moonKey][id]){
-      GameState.visited[this.moonKey][id] = true;
-      logFact(m.name, label, m.hotspots[id]);
+  returnToOrbit(){
+    this.cameras.main.fadeOut(250, 5, 7, 15);
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Orbit'));
+  }
+
+  showRealPhoto(){
+    const body = this.bodyData;
+    document.getElementById('fact-title').textContent = body.name + ' — NASA Photograph';
+    document.getElementById('fact-photo-slot').innerHTML = nasaPhotoHTML(body.image);
+    document.getElementById('fact-text').textContent = body.image.caption;
+    document.getElementById('fact-overlay').classList.add('visible');
+  }
+
+  visitHotspot(id, spr){
+    const body = this.bodyData;
+    const h = body.hotspots[id];
+    if(!GameState.visited[this.bodyKey][id]){
+      GameState.visited[this.bodyKey][id] = true;
+      logFact(body.name, h.label, h.text);
       addScore(10);
       spr.setTexture('tex-hotspot-done');
-      this.updateChallengeButton();
+      if(body.quiz) this.updateChallengeButton();
     }
-    openFactPanel(m.name + ' — ' + label, m.hotspots[id]);
+    document.getElementById('fact-title').textContent = body.name + ' — ' + h.label;
+    document.getElementById('fact-photo-slot').innerHTML = '';
+    document.getElementById('fact-text').textContent = h.text;
+    document.getElementById('fact-overlay').classList.add('visible');
   }
 
   allHotspotsVisited(){
-    return Object.keys(this.moonData.hotspots).every(id => GameState.visited[this.moonKey][id]);
+    return Object.keys(this.bodyData.hotspots).every(id => GameState.visited[this.bodyKey][id]);
   }
 
   updateChallengeButton(){
-    if(GameState.completed[this.moonKey]) return;
+    if(GameState.completed[this.bodyKey]) return;
     const ready = this.allHotspotsVisited();
     this.challengeBtn.setInteractive(ready ? { useHandCursor:true } : undefined);
     this.challengeBtn.setAlpha(ready ? 1 : 0.45);
     this.challengeBtn.off('pointerdown');
     if(ready){
-      this.challengeBtn.on('pointerdown', () => startQuiz(this.moonKey, this));
+      this.challengeBtn.on('pointerdown', () => startQuiz(this.bodyKey, this));
     }
   }
 }
 
-/* =========================================================
+/* =========================================================================
    DOM panel logic
-   ========================================================= */
-function openFactPanel(title, text){
-  document.getElementById('fact-title').textContent = title;
-  document.getElementById('fact-text').textContent = text;
-  document.getElementById('fact-overlay').classList.add('visible');
-}
+   ========================================================================= */
 document.getElementById('fact-close-btn').addEventListener('click', () => {
   document.getElementById('fact-overlay').classList.remove('visible');
 });
@@ -681,15 +933,15 @@ document.getElementById('complete-close-btn').addEventListener('click', () => {
 });
 
 /* Quiz flow */
-let currentQuiz = null; // { moonKey, sceneRef, qIndex, correctCount }
+let currentQuiz = null; // { bodyKey, sceneRef, qIndex, correctCount }
 
-function startQuiz(moonKey, sceneRef){
-  currentQuiz = { moonKey, sceneRef, qIndex: 0, correctCount: 0 };
+function startQuiz(bodyKey, sceneRef){
+  currentQuiz = { bodyKey, sceneRef, qIndex: 0, correctCount: 0 };
   showQuizQuestion();
 }
 
 function showQuizQuestion(){
-  const m = MOONS[currentQuiz.moonKey];
+  const m = BODIES[currentQuiz.bodyKey];
   const q = m.quiz[currentQuiz.qIndex];
   document.getElementById('quiz-progress').textContent = `Question ${currentQuiz.qIndex+1} of ${m.quiz.length} — ${m.name} Challenge`;
   document.getElementById('quiz-question').textContent = q.q;
@@ -708,7 +960,7 @@ function showQuizQuestion(){
 }
 
 function answerQuiz(choiceIndex, btnEl){
-  const m = MOONS[currentQuiz.moonKey];
+  const m = BODIES[currentQuiz.bodyKey];
   const q = m.quiz[currentQuiz.qIndex];
   const allBtns = document.querySelectorAll('#quiz-options .quiz-option');
   allBtns.forEach(b => b.disabled = true);
@@ -725,7 +977,7 @@ function answerQuiz(choiceIndex, btnEl){
 }
 
 document.getElementById('quiz-next-btn').addEventListener('click', () => {
-  const m = MOONS[currentQuiz.moonKey];
+  const m = BODIES[currentQuiz.bodyKey];
   currentQuiz.qIndex++;
   if(currentQuiz.qIndex < m.quiz.length){
     showQuizQuestion();
@@ -736,20 +988,21 @@ document.getElementById('quiz-next-btn').addEventListener('click', () => {
 });
 
 function finishQuiz(){
-  const moonKey = currentQuiz.moonKey;
-  const m = MOONS[moonKey];
+  const bodyKey = currentQuiz.bodyKey;
+  const m = BODIES[bodyKey];
   const gained = currentQuiz.correctCount * 15;
   addScore(gained);
-  GameState.completed[moonKey] = true;
+  GameState.completed[bodyKey] = true;
 
-  const idx = MOON_ORDER.indexOf(moonKey);
-  const nextKey = MOON_ORDER[idx+1];
+  const idx = BODY_ORDER.indexOf(bodyKey);
+  const nextKey = BODY_ORDER[idx+1];
   if(nextKey) GameState.unlocked[nextKey] = true;
+  updateProgressHud();
 
   document.getElementById('quiz-summary-title').textContent = `${m.name} Mission Complete!`;
   let text = `You answered ${currentQuiz.correctCount} of ${m.quiz.length} questions correctly, earning ${gained} bonus points.`;
   if(nextKey){
-    text += ` ${MOONS[nextKey].name} is now unlocked!`;
+    text += ` ${BODIES[nextKey].name} is now unlocked!`;
   } else {
     text += ` You've surveyed every major moon in the Jovian system!`;
   }
@@ -761,7 +1014,7 @@ document.getElementById('quiz-summary-btn').addEventListener('click', () => {
   document.getElementById('quiz-summary-overlay').classList.remove('visible');
   const sceneRef = currentQuiz.sceneRef;
   currentQuiz = null;
-  sceneRef.scene.start('Orbit');
+  sceneRef.returnToOrbit();
 });
 
 function openCompletionPanel(){
@@ -772,16 +1025,16 @@ function openCompletionPanel(){
   document.getElementById('complete-overlay').classList.add('visible');
 }
 
-/* =========================================================
+/* =========================================================================
    Phaser game init
-   ========================================================= */
+   ========================================================================= */
 const config = {
   type: Phaser.AUTO,
-  width: 820,
-  height: 560,
+  width: 900,
+  height: 580,
   parent: 'game-container',
   backgroundColor: '#05060f',
-  scene: [BootScene, OrbitScene, MoonScene],
+  scene: [BootScene, OrbitScene, BodyScene],
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
 };
 const game = new Phaser.Game(config);
