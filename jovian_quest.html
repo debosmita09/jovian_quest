@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Jovian Quest: A Journey Through Jupiter and Its Moons</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --panel-bg: rgba(10, 14, 30, 0.94);
+    --panel-border: #f4a940;
+    --text-main: #eaf1ff;
+    --accent: #f4a940;
+    --accent2: #5fc8ff;
+    --danger: #ff6b6b;
+    --good: #6bffb0;
+  }
+  *{ box-sizing: border-box; }
+  html, body{
+    margin:0; padding:0; height:100%;
+    background: radial-gradient(ellipse at 50% 20%, #0d1230 0%, #05070f 70%);
+    font-family: 'Segoe UI', Verdana, Tahoma, sans-serif;
+    color: var(--text-main);
+    overflow: hidden;
+  }
+  #app{
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  #hud{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 8px 14px;
+    background: linear-gradient(180deg, #12163a, #0a0d22);
+    border-bottom: 2px solid var(--accent);
+    z-index: 20;
+    flex-shrink:0;
+  }
+  #hud .title{ font-weight:700; letter-spacing:1px; color: var(--accent); font-size: 15px;}
+  #hud .stats{ display:flex; gap:16px; align-items:center; font-size:14px;}
+  #hud button{
+    background: #1b2050; color: var(--text-main); border: 1px solid var(--accent2);
+    padding: 6px 12px; border-radius: 6px; cursor:pointer; font-size: 13px;
+  }
+  #hud button:hover{ background: var(--accent2); color:#04101c; }
+  #game-container{
+    flex: 1;
+    position: relative;
+    min-height: 0;
+  }
+  #game-container canvas{ display:block; margin: 0 auto; max-width:100%; max-height:100%; }
+
+  .overlay{
+    position:absolute; inset:0; z-index: 50;
+    display:none; align-items:center; justify-content:center;
+    background: rgba(2,4,12,0.72);
+    padding: 16px;
+  }
+  .overlay.visible{ display:flex; }
+  .panel{
+    background: var(--panel-bg);
+    border: 2px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    max-width: 560px;
+    width: 100%;
+    max-height: 86%;
+    overflow-y: auto;
+    box-shadow: 0 0 30px rgba(244,169,64,0.25);
+  }
+  .panel h2{ margin-top:0; color: var(--accent); font-size: 20px; }
+  .panel h3{ color: var(--accent2); margin-bottom: 4px; }
+  .panel p{ line-height:1.5; font-size: 14.5px; }
+  .panel-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+  .btn{
+    background: var(--accent); color:#1a1200; border:none; font-weight:600;
+    padding: 9px 18px; border-radius:8px; cursor:pointer; font-size:14px;
+  }
+  .btn:hover{ filter: brightness(1.1); }
+  .btn.secondary{ background: transparent; color: var(--accent2); border:1px solid var(--accent2); }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  .quiz-option{
+    display:block; width:100%; text-align:left;
+    background:#141a3d; color: var(--text-main); border:1px solid #2c3670;
+    padding: 10px 12px; margin: 6px 0; border-radius: 8px; cursor:pointer; font-size:14px;
+  }
+  .quiz-option:hover{ border-color: var(--accent2); }
+  .quiz-option.correct{ background: #103d29; border-color: var(--good); }
+  .quiz-option.wrong{ background: #3d1414; border-color: var(--danger); }
+  .quiz-option:disabled{ cursor:default; }
+  .feedback{ margin-top:10px; font-size: 13.5px; font-style: italic; color: var(--accent2); }
+  .progress-line{ font-size:12px; color:#9aa4d6; margin-bottom:6px; }
+
+  #mission-log-list .log-entry{
+    border-left: 3px solid var(--accent2); padding: 6px 10px; margin-bottom:10px; font-size: 13.5px;
+    background: rgba(95,200,255,0.06); border-radius: 0 6px 6px 0;
+  }
+  #mission-log-list .log-entry b{ color: var(--accent); }
+
+  .tooltip-toast{
+    position:absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(20,10,10,0.92); border:1px solid var(--danger); color:#ffdada;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; z-index: 60; display:none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="title">🪐 JOVIAN QUEST</div>
+    <div class="stats">
+      <span id="score-display">Score: 0</span>
+      <button id="log-btn">Mission Log</button>
+    </div>
+  </div>
+  <div id="game-container"></div>
+  <div id="toast" class="tooltip-toast"></div>
+
+  <!-- Intro -->
+  <div id="intro-overlay" class="overlay visible">
+    <div class="panel">
+      <h2>Jovian Quest: A Journey Through Jupiter and Its Moons</h2>
+      <p>You are the pilot of a research probe entering the Jupiter system. Your mission: survey Jupiter and its four largest moons — <b>Io, Europa, Ganymede,</b> and <b>Callisto</b> — collecting scientific data along the way.</p>
+      <p>At each destination, scan the surface, atmosphere, and science highlights, record your findings in the Mission Log, then complete a knowledge challenge to unlock the next moon. Along the way you'll uncover why this giant planet and its moons matter for understanding how our Solar System formed — and where else in it life might exist.</p>
+      <div class="panel-actions">
+        <button class="btn" id="begin-btn">Begin Mission 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fact Panel -->
+  <div id="fact-overlay" class="overlay">
+    <div class="panel">
+      <h2 id="fact-title"></h2>
+      <p id="fact-text"></p>
+      <div class="panel-actions">
+        <button class="btn" id="fact-close-btn">Log & Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Panel -->
+  <div id="quiz-overlay" class="overlay">
+    <div class="panel">
+      <div class="progress-line" id="quiz-progress"></div>
+      <h2 id="quiz-question"></h2>
+      <div id="quiz-options"></div>
+      <div class="feedback" id="quiz-feedback"></div>
+      <div class="panel-actions">
+        <button class="btn" id="quiz-next-btn" style="display:none;">Next ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Summary -->
+  <div id="quiz-summary-overlay" class="overlay">
+    <div class="panel">
+      <h2 id="quiz-summary-title"></h2>
+      <p id="quiz-summary-text"></p>
+      <div class="panel-actions">
+        <button class="btn" id="quiz-summary-btn">Return to Orbit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mission Log -->
+  <div id="log-overlay" class="overlay">
+    <div class="panel">
+      <h2>📖 Mission Log</h2>
+      <div id="mission-log-list"></div>
+      <div class="panel-actions">
+        <button class="btn secondary" id="log-close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion -->
+  <div id="complete-overlay" class="overlay">
+    <div class="panel">
+      <h2>🌌 Mission Complete!</h2>
+      <p id="complete-text"></p>
+      <div class="panel-actions">
+        <button class="btn secondary" id="complete-log-btn">Review Mission Log</button>
+        <button class="btn" id="complete-close-btn">Keep Exploring</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.70.0/phaser.min.js"></script>
+<script>
+/* =========================================================
+   JOVIAN QUEST — data
+   ========================================================= */
+
+const JUPITER = {
+  key: 'jupiter',
+  name: 'Jupiter',
+  color: 0xd9a463,
+  facts: [
+    "Jupiter is the largest planet in the Solar System — more than 1,300 Earths could fit inside it, yet it spins so fast that a single day lasts only about 10 hours.",
+    "It is a gas giant made almost entirely of hydrogen and helium, with no true solid surface for a probe to land on.",
+    "The Great Red Spot is a colossal storm, wider than Earth, that has been swirling for at least a few centuries.",
+    "Jupiter's enormous gravity shaped the early Solar System, flinging some debris out and shepherding other material into the orderly orbits planets follow today. It also has dozens upon dozens of known moons, more than any other planet."
+  ]
+};
+
+const MOON_ORDER = ['io', 'europa', 'ganymede', 'callisto'];
+
+const MOONS = {
+  io: {
+    key: 'io', name: 'Io', order: 0,
+    baseColor: 0xE8C15A, orbitRadius: 90, orbitSpeed: 0.9, size: 46,
+    diameter: '3,643 km', mass: '~8.9 × 10^22 kg', atmosphere: 'Extremely thin sulfur dioxide',
+    hotspots: {
+      surface: "Io's surface is covered in sulfur compounds in shades of yellow, orange, and red, dotted with hundreds of active volcanoes and vast lava flows. Some eruptions blast material hundreds of kilometers into space.",
+      atmosphere: "Io has an extremely thin atmosphere made mostly of sulfur dioxide gas, constantly resupplied by its volcanoes. It's so thin that much of it freezes onto the ground at night.",
+      science: "Io's extreme volcanism comes from tidal heating: Jupiter's gravity, combined with tugs from neighboring moons Europa and Ganymede, squeezes and flexes Io's interior, generating tremendous internal heat."
+    },
+    quiz: [
+      { q: "What makes Io unique among moons in our Solar System?", options: ["It has a thick breathable atmosphere", "It is the most volcanically active body known", "It has visible rings", "It is made entirely of ice"], answer: 1, explain: "Io's hundreds of active volcanoes make it the most volcanically active body in the Solar System." },
+      { q: "What mainly causes Io's intense volcanic activity?", options: ["Tidal heating from Jupiter and nearby moons", "Heat from sunlight", "Ongoing asteroid impacts", "Radiation from Jupiter's rings"], answer: 0, explain: "Gravitational flexing from Jupiter and neighboring moons squeezes Io's interior, generating heat." },
+      { q: "What gas makes up most of Io's thin atmosphere?", options: ["Nitrogen", "Oxygen", "Sulfur dioxide", "Methane"], answer: 2, explain: "Volcanic outgassing keeps Io's thin atmosphere supplied with sulfur dioxide." }
+    ]
+  },
+  europa: {
+    key: 'europa', name: 'Europa', order: 1,
+    baseColor: 0xCFE9F2, orbitRadius: 145, orbitSpeed: 0.55, size: 42,
+    diameter: '3,122 km', mass: '~4.8 × 10^22 kg', atmosphere: 'Extremely thin oxygen',
+    hotspots: {
+      surface: "Europa's surface is a smooth shell of water ice, crisscrossed by long reddish-brown cracks called lineae. Very few craters suggest the surface is geologically young and constantly renewed.",
+      atmosphere: "Europa has an extremely thin oxygen atmosphere, likely produced when charged particles from Jupiter's radiation belts split apart water molecules at the icy surface.",
+      science: "Beneath its icy shell, Europa is thought to hide a global saltwater ocean holding more water than all of Earth's oceans combined — making it one of the top targets in the search for life beyond Earth."
+    },
+    quiz: [
+      { q: "What most likely lies beneath Europa's icy crust?", options: ["A core of solid iron", "A subsurface saltwater ocean", "A layer of frozen methane", "Nothing — it's solid ice all the way down"], answer: 1, explain: "Evidence strongly points to a global subsurface ocean beneath Europa's ice shell." },
+      { q: "Why is Europa considered a top target in the search for life?", options: ["It has a thick, breathable atmosphere", "It is closest to the Sun among the moons", "It may have a warm, chemically rich subsurface ocean", "It has visible plant-like markings"], answer: 2, explain: "A liquid water ocean with the right chemistry and possible heat sources makes Europa promising for astrobiology." },
+      { q: "Which NASA mission was sent to study Europa up close?", options: ["Europa Clipper", "New Horizons", "Cassini", "Juno"], answer: 0, explain: "Europa Clipper is NASA's mission dedicated to studying Europa's ocean and ice shell." }
+    ]
+  },
+  ganymede: {
+    key: 'ganymede', name: 'Ganymede', order: 2,
+    baseColor: 0xA9987C, orbitRadius: 205, orbitSpeed: 0.32, size: 52,
+    diameter: '5,268 km', mass: '~1.48 × 10^23 kg', atmosphere: 'Extremely thin oxygen',
+    hotspots: {
+      surface: "Ganymede's surface is a patchwork of ancient, heavily cratered dark terrain next to younger, lighter regions carved with long grooves and ridges from past tectonic activity.",
+      atmosphere: "Ganymede has an extremely thin oxygen atmosphere, and its unique magnetic field may even produce faint auroras near its poles.",
+      science: "Ganymede is the only moon in the Solar System known to generate its own magnetic field, and scientists think it may also hide a deep saltwater ocean sandwiched between layers of ice."
+    },
+    quiz: [
+      { q: "What makes Ganymede special among all moons in the Solar System?", options: ["It is the largest moon, even bigger than Mercury", "It has visible rings", "It is the closest moon to Jupiter", "It has liquid water on its surface"], answer: 0, explain: "Ganymede is the largest moon in the Solar System, larger than the planet Mercury." },
+      { q: "What unique feature does Ganymede have that no other moon possesses?", options: ["Active volcanoes", "Its own internally generated magnetic field", "A thick nitrogen atmosphere", "Visible ring system"], answer: 1, explain: "Ganymede is the only known moon that generates its own magnetic field." },
+      { q: "What kind of terrain covers much of Ganymede's younger regions?", options: ["Sand dunes", "Active lava flows", "Grooved terrain from tectonic activity", "Smooth liquid oceans"], answer: 2, explain: "Long grooves and ridges formed by past tectonic stresses mark Ganymede's younger terrain." }
+    ]
+  },
+  callisto: {
+    key: 'callisto', name: 'Callisto', order: 3,
+    baseColor: 0x8C7B6E, orbitRadius: 265, orbitSpeed: 0.2, size: 50,
+    diameter: '4,821 km', mass: '~1.08 × 10^23 kg', atmosphere: 'Extremely thin carbon dioxide traces',
+    hotspots: {
+      surface: "Callisto has one of the oldest and most heavily cratered surfaces in the Solar System, preserving a record of impacts stretching back billions of years.",
+      atmosphere: "Callisto has an extremely thin atmosphere with only faint traces of carbon dioxide, offering almost no protection from space weathering.",
+      science: "Despite showing few signs of ongoing geological activity, some data hint that Callisto may also hide a salty subsurface ocean, adding it to the list of ocean worlds worth exploring."
+    },
+    quiz: [
+      { q: "What is most notable about Callisto's surface?", options: ["It is smooth and crater-free", "It is heavily cratered and extremely ancient", "It is covered in active volcanoes", "It is covered in deep grooves only"], answer: 1, explain: "Callisto's surface is one of the most heavily cratered in the Solar System." },
+      { q: "Why is Callisto considered geologically 'quiet' compared to Io?", options: ["It has almost no ongoing tectonic or volcanic activity", "It is closer to the Sun", "It has no gravity", "It is made of pure metal"], answer: 0, explain: "Unlike Io, Callisto shows little evidence of current geological activity." },
+      { q: "What might lie beneath Callisto's surface, based on some evidence?", options: ["A hollow interior", "A molten iron core only", "A possible salty subsurface ocean", "Solid ice all the way to the center with nothing else"], answer: 2, explain: "Magnetic field data hint at a possible subsurface saline ocean within Callisto." }
+    ]
+  }
+};
+
+/* =========================================================
+   Game State (in-memory, resets on page reload)
+   ========================================================= */
+const GameState = {
+  score: 0,
+  unlocked: { io: true, europa: false, ganymede: false, callisto: false },
+  completed: { io: false, europa: false, ganymede: false, callisto: false },
+  visited: { jupiter: {}, io: {}, europa: {}, ganymede: {}, callisto: {} },
+  missionLog: [] // {who, title, text}
+};
+
+function addScore(n){
+  GameState.score += n;
+  document.getElementById('score-display').textContent = 'Score: ' + GameState.score;
+}
+
+function logFact(who, title, text){
+  GameState.missionLog.push({ who, title, text });
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(() => t.style.display = 'none', 2200);
+}
+
+/* =========================================================
+   Texture generation helpers (raw canvas, clipped to circle)
+   ========================================================= */
+function circleTexture(scene, key, size, drawFn){
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size/2 - 1, 0, Math.PI*2);
+  ctx.clip();
+  drawFn(ctx, size);
+  ctx.restore();
+  scene.textures.addCanvas(key, canvas);
+}
+
+function rand(a,b){ return a + Math.random()*(b-a); }
+
+function makeStarfield(scene, key, w, h){
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(w/2, h*0.25, 10, w/2, h*0.25, w*0.8);
+  grad.addColorStop(0, '#141a3d');
+  grad.addColorStop(1, '#05060f');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,w,h);
+  for(let i=0;i<160;i++){
+    const x = rand(0,w), y = rand(0,h), r = rand(0.4,1.6);
+    ctx.globalAlpha = rand(0.3,1);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  scene.textures.addCanvas(key, canvas);
+}
+
+function makeJupiterTexture(scene, key, size){
+  circleTexture(scene, key, size, (ctx, s) => {
+    const bandColors = ['#e8c88a','#c99a5b','#efd9a8','#b97e4a','#e3bb7d','#d1996a','#f0dcb0'];
+    const bandH = s / bandColors.length;
+    bandColors.forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(0, i*bandH, s, bandH + 1);
+    });
+    // swirl streaks
+    ctx.globalAlpha = 0.25;
+    for(let i=0;i<10;i++){
+      ctx.strokeStyle = '#7a4a2a';
+      ctx.lineWidth = rand(1,3);
+      ctx.beginPath();
+      const y = rand(0,s);
+      ctx.moveTo(0,y);
+      ctx.bezierCurveTo(s*0.3, y+rand(-10,10), s*0.7, y+rand(-10,10), s, y+rand(-6,6));
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // Great Red Spot
+    ctx.fillStyle = '#c1502f';
+    ctx.beginPath();
+    ctx.ellipse(s*0.32, s*0.62, s*0.16, s*0.09, 0.15, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(s*0.5,s*0.5,s*0.5,s*0.5,0,0,Math.PI*2);
+    ctx.fill();
+  });
+}
+
+function makeMoonTexture(scene, key, size, moonKey, base){
+  circleTexture(scene, key, size, (ctx, s) => {
+    ctx.fillStyle = base;
+    ctx.fillRect(0,0,s,s);
+    if(moonKey === 'io'){
+      for(let i=0;i<14;i++){
+        ctx.fillStyle = Math.random() > 0.5 ? '#b5451f' : '#f2f06a';
+        ctx.globalAlpha = rand(0.4,0.8);
+        const r = rand(2,7);
+        ctx.beginPath(); ctx.arc(rand(0,s), rand(0,s), r, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    } else if(moonKey === 'europa'){
+      ctx.strokeStyle = '#b06a4a';
+      for(let i=0;i<9;i++){
+        ctx.globalAlpha = rand(0.3,0.6);
+        ctx.lineWidth = rand(0.6,1.6);
+        ctx.beginPath();
+        let x = rand(0,s), y = rand(0,s);
+        ctx.moveTo(x,y);
+        for(let j=0;j<3;j++){
+          x += rand(-s*0.25, s*0.25); y += rand(-s*0.25, s*0.25);
+          ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    } else if(moonKey === 'ganymede'){
+      ctx.strokeStyle = '#6f6250';
+      for(let i=0;i<7;i++){
+        ctx.globalAlpha = rand(0.3,0.55);
+        ctx.lineWidth = rand(2,4);
+        const y = rand(0,s);
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.bezierCurveTo(s*0.33,y+rand(-14,14), s*0.66,y+rand(-14,14), s,y+rand(-10,10));
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      for(let i=0;i<5;i++){
+        ctx.fillStyle = '#5a4d3d';
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.arc(rand(0,s), rand(0,s), rand(2,5), 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    } else if(moonKey === 'callisto'){
+      for(let i=0;i<26;i++){
+        const r = rand(2,8);
+        ctx.globalAlpha = rand(0.3,0.6);
+        ctx.fillStyle = '#5f5245';
+        ctx.beginPath(); ctx.arc(rand(0,s), rand(0,s), r, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#a89579';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.beginPath(); ctx.ellipse(s*0.68,s*0.68,s*0.55,s*0.55,0,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function makeHotspotTexture(scene, key, color){
+  const size = 28;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(size/2,size/2,1,size/2,size/2,size/2);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(0.4, color);
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(size/2,size/2,size/2,0,Math.PI*2); ctx.fill();
+  scene.textures.addCanvas(key, canvas);
+}
+
+/* =========================================================
+   Boot Scene
+   ========================================================= */
+class BootScene extends Phaser.Scene {
+  constructor(){ super('Boot'); }
+  create(){
+    makeStarfield(this, 'stars-orbit', 820, 560);
+    makeStarfield(this, 'stars-moon', 820, 560);
+    makeJupiterTexture(this, 'tex-jupiter', 140);
+    MOON_ORDER.forEach(k => {
+      const m = MOONS[k];
+      makeMoonTexture(this, 'tex-' + k, m.size*2, k, Phaser.Display.Color.IntegerToColor(m.baseColor).rgba);
+      makeMoonTexture(this, 'tex-' + k + '-big', 240, k, Phaser.Display.Color.IntegerToColor(m.baseColor).rgba);
+    });
+    makeHotspotTexture(this, 'tex-hotspot-open', '#5fc8ff');
+    makeHotspotTexture(this, 'tex-hotspot-done', '#6bffb0');
+    this.scene.start('Orbit');
+  }
+}
+
+/* =========================================================
+   Orbit Scene
+   ========================================================= */
+class OrbitScene extends Phaser.Scene {
+  constructor(){ super('Orbit'); }
+  create(){
+    this.add.image(410, 280, 'stars-orbit').setDisplaySize(820,560);
+    this.add.text(410, 24, 'The Jupiter System', { fontFamily:'Segoe UI', fontSize:'20px', color:'#f4a940', fontStyle:'bold' }).setOrigin(0.5,0);
+
+    const cx = 410, cy = 300;
+    const jupiter = this.add.image(cx, cy, 'tex-jupiter').setInteractive({ useHandCursor:true });
+    this.tweens.add({ targets: jupiter, angle: 360, duration: 60000, repeat: -1 });
+    jupiter.on('pointerdown', () => this.showJupiterInfo());
+    this.add.text(cx, cy+78, 'Jupiter', { fontFamily:'Segoe UI', fontSize:'13px', color:'#eaf1ff' }).setOrigin(0.5);
+
+    // orbit rings (visual)
+    MOON_ORDER.forEach(k => {
+      const m = MOONS[k];
+      const ring = this.add.circle(cx, cy, m.orbitRadius);
+      ring.setStrokeStyle(1, 0x2c3670, 0.5);
+    });
+
+    this.moonSprites = {};
+    this.moonAngles = {};
+    MOON_ORDER.forEach((k, idx) => {
+      const m = MOONS[k];
+      this.moonAngles[k] = idx * (Math.PI/2);
+      const spr = this.add.image(cx + m.orbitRadius, cy, 'tex-' + k).setInteractive({ useHandCursor:true });
+      spr.setScale(m.size/(m.size*2*0.9));
+      this.moonSprites[k] = spr;
+
+      const label = this.add.text(0,0,m.name, { fontFamily:'Segoe UI', fontSize:'12px', color:'#eaf1ff' }).setOrigin(0.5);
+      spr.label = label;
+
+      const lock = this.add.text(0,0,'🔒', { fontSize:'16px' }).setOrigin(0.5);
+      spr.lockIcon = lock;
+
+      const check = this.add.text(0,0,'✅', { fontSize:'14px' }).setOrigin(0.5);
+      check.setVisible(false);
+      spr.checkIcon = check;
+
+      spr.on('pointerdown', () => {
+        if(GameState.unlocked[k]){
+          this.scene.start('Moon', { moonKey: k });
+        } else {
+          const prevIdx = MOON_ORDER.indexOf(k) - 1;
+          const prevName = prevIdx >= 0 ? MOONS[MOON_ORDER[prevIdx]].name : '';
+          showToast('🔒 Locked — complete ' + prevName + '\'s mission first!');
+        }
+      });
+    });
+
+    this.updateLockVisuals();
+    this.maybeShowCompletion();
+  }
+
+  updateLockVisuals(){
+    MOON_ORDER.forEach(k => {
+      const spr = this.moonSprites[k];
+      spr.setAlpha(GameState.unlocked[k] ? 1 : 0.45);
+      spr.lockIcon.setVisible(!GameState.unlocked[k]);
+      spr.checkIcon.setVisible(!!GameState.completed[k]);
+    });
+  }
+
+  showJupiterInfo(){
+    const key = 'jupiter-facts';
+    if(!GameState.visited.jupiter.info){
+      GameState.visited.jupiter.info = true;
+      JUPITER.facts.forEach(f => logFact('Jupiter', 'Overview', f));
+      addScore(10);
+    }
+    openFactPanel(JUPITER.name, JUPITER.facts.join(' '));
+  }
+
+  maybeShowCompletion(){
+    const allDone = MOON_ORDER.every(k => GameState.completed[k]);
+    if(allDone && !GameState._completionShown){
+      GameState._completionShown = true;
+      setTimeout(() => openCompletionPanel(), 400);
+    }
+  }
+
+  update(time, delta){
+    const cx = 410, cy = 300;
+    MOON_ORDER.forEach(k => {
+      const m = MOONS[k];
+      this.moonAngles[k] += (delta/1000) * m.orbitSpeed * 0.3;
+      const x = cx + Math.cos(this.moonAngles[k]) * m.orbitRadius;
+      const y = cy + Math.sin(this.moonAngles[k]) * m.orbitRadius * 0.5;
+      const spr = this.moonSprites[k];
+      spr.setPosition(x,y);
+      spr.label.setPosition(x, y + 22);
+      spr.lockIcon.setPosition(x, y);
+      spr.checkIcon.setPosition(x + 16, y - 16);
+    });
+  }
+}
+
+/* =========================================================
+   Moon Scene
+   ========================================================= */
+class MoonScene extends Phaser.Scene {
+  constructor(){ super('Moon'); }
+  init(data){ this.moonKey = data.moonKey; }
+  create(){
+    const m = MOONS[this.moonKey];
+    this.moonData = m;
+
+    this.add.image(410, 280, 'stars-moon').setDisplaySize(820,560);
+
+    this.add.text(20, 16, '◀ Back to Orbit', { fontFamily:'Segoe UI', fontSize:'14px', color:'#5fc8ff', backgroundColor:'#141a3d', padding:{x:8,y:5} })
+      .setInteractive({ useHandCursor:true })
+      .on('pointerdown', () => this.scene.start('Orbit'));
+
+    this.add.text(410, 20, m.name, { fontFamily:'Segoe UI', fontSize:'22px', color:'#f4a940', fontStyle:'bold' }).setOrigin(0.5,0);
+    this.add.text(410, 50, `Diameter: ${m.diameter}   •   Mass: ${m.mass}   •   Atmosphere: ${m.atmosphere}`,
+      { fontFamily:'Segoe UI', fontSize:'12px', color:'#9aa4d6' }).setOrigin(0.5,0);
+
+    const cx = 410, cy = 300;
+    const bigMoon = this.add.image(cx, cy, 'tex-' + this.moonKey + '-big');
+    this.tweens.add({ targets: bigMoon, angle: 360, duration: 40000, repeat: -1 });
+
+    const positions = [
+      { x: cx - 150, y: cy - 40, id: 'surface', label: 'Surface Scan' },
+      { x: cx + 150, y: cy - 40, id: 'atmosphere', label: 'Atmosphere Scan' },
+      { x: cx, y: cy + 150, id: 'science', label: 'Science Data' }
+    ];
+    this.hotspotSprites = {};
+    positions.forEach(p => {
+      const visited = !!GameState.visited[this.moonKey][p.id];
+      const spr = this.add.image(p.x, p.y, visited ? 'tex-hotspot-done' : 'tex-hotspot-open').setInteractive({ useHandCursor:true });
+      this.tweens.add({ targets: spr, scale: 1.25, duration: 700, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
+      this.add.text(p.x, p.y + 20, p.label, { fontFamily:'Segoe UI', fontSize:'11px', color:'#eaf1ff' }).setOrigin(0.5);
+      spr.on('pointerdown', () => this.visitHotspot(p.id, p.label, spr));
+      this.hotspotSprites[p.id] = spr;
+    });
+
+    this.challengeBtn = this.add.text(cx, 470, GameState.completed[this.moonKey] ? '✅ Mission Complete' : 'Start Challenge 🎯',
+      { fontFamily:'Segoe UI', fontSize:'16px', color: GameState.completed[this.moonKey] ? '#6bffb0' : '#1a1200',
+        backgroundColor: GameState.completed[this.moonKey] ? 'transparent' : '#f4a940', padding:{x:16,y:8} })
+      .setOrigin(0.5);
+    this.updateChallengeButton();
+  }
+
+  visitHotspot(id, label, spr){
+    const m = this.moonData;
+    if(!GameState.visited[this.moonKey][id]){
+      GameState.visited[this.moonKey][id] = true;
+      logFact(m.name, label, m.hotspots[id]);
+      addScore(10);
+      spr.setTexture('tex-hotspot-done');
+      this.updateChallengeButton();
+    }
+    openFactPanel(m.name + ' — ' + label, m.hotspots[id]);
+  }
+
+  allHotspotsVisited(){
+    return Object.keys(this.moonData.hotspots).every(id => GameState.visited[this.moonKey][id]);
+  }
+
+  updateChallengeButton(){
+    if(GameState.completed[this.moonKey]) return;
+    const ready = this.allHotspotsVisited();
+    this.challengeBtn.setInteractive(ready ? { useHandCursor:true } : undefined);
+    this.challengeBtn.setAlpha(ready ? 1 : 0.45);
+    this.challengeBtn.off('pointerdown');
+    if(ready){
+      this.challengeBtn.on('pointerdown', () => startQuiz(this.moonKey, this));
+    }
+  }
+}
+
+/* =========================================================
+   DOM panel logic
+   ========================================================= */
+function openFactPanel(title, text){
+  document.getElementById('fact-title').textContent = title;
+  document.getElementById('fact-text').textContent = text;
+  document.getElementById('fact-overlay').classList.add('visible');
+}
+document.getElementById('fact-close-btn').addEventListener('click', () => {
+  document.getElementById('fact-overlay').classList.remove('visible');
+});
+
+document.getElementById('begin-btn').addEventListener('click', () => {
+  document.getElementById('intro-overlay').classList.remove('visible');
+});
+
+document.getElementById('log-btn').addEventListener('click', () => renderMissionLog());
+document.getElementById('log-close-btn').addEventListener('click', () => {
+  document.getElementById('log-overlay').classList.remove('visible');
+});
+function renderMissionLog(){
+  const list = document.getElementById('mission-log-list');
+  list.innerHTML = '';
+  if(GameState.missionLog.length === 0){
+    list.innerHTML = '<p style="color:#9aa4d6;">No entries yet — go scan something!</p>';
+  } else {
+    GameState.missionLog.forEach(entry => {
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.innerHTML = `<b>${entry.who} — ${entry.title}</b><br>${entry.text}`;
+      list.appendChild(div);
+    });
+  }
+  document.getElementById('log-overlay').classList.add('visible');
+}
+document.getElementById('complete-log-btn').addEventListener('click', () => renderMissionLog());
+document.getElementById('complete-close-btn').addEventListener('click', () => {
+  document.getElementById('complete-overlay').classList.remove('visible');
+});
+
+/* Quiz flow */
+let currentQuiz = null; // { moonKey, sceneRef, qIndex, correctCount }
+
+function startQuiz(moonKey, sceneRef){
+  currentQuiz = { moonKey, sceneRef, qIndex: 0, correctCount: 0 };
+  showQuizQuestion();
+}
+
+function showQuizQuestion(){
+  const m = MOONS[currentQuiz.moonKey];
+  const q = m.quiz[currentQuiz.qIndex];
+  document.getElementById('quiz-progress').textContent = `Question ${currentQuiz.qIndex+1} of ${m.quiz.length} — ${m.name} Challenge`;
+  document.getElementById('quiz-question').textContent = q.q;
+  document.getElementById('quiz-feedback').textContent = '';
+  document.getElementById('quiz-next-btn').style.display = 'none';
+  const optionsDiv = document.getElementById('quiz-options');
+  optionsDiv.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => answerQuiz(i, btn));
+    optionsDiv.appendChild(btn);
+  });
+  document.getElementById('quiz-overlay').classList.add('visible');
+}
+
+function answerQuiz(choiceIndex, btnEl){
+  const m = MOONS[currentQuiz.moonKey];
+  const q = m.quiz[currentQuiz.qIndex];
+  const allBtns = document.querySelectorAll('#quiz-options .quiz-option');
+  allBtns.forEach(b => b.disabled = true);
+  if(choiceIndex === q.answer){
+    btnEl.classList.add('correct');
+    document.getElementById('quiz-feedback').textContent = '✅ Correct! ' + q.explain;
+    currentQuiz.correctCount++;
+  } else {
+    btnEl.classList.add('wrong');
+    allBtns[q.answer].classList.add('correct');
+    document.getElementById('quiz-feedback').textContent = '❌ Not quite. ' + q.explain;
+  }
+  document.getElementById('quiz-next-btn').style.display = 'inline-block';
+}
+
+document.getElementById('quiz-next-btn').addEventListener('click', () => {
+  const m = MOONS[currentQuiz.moonKey];
+  currentQuiz.qIndex++;
+  if(currentQuiz.qIndex < m.quiz.length){
+    showQuizQuestion();
+  } else {
+    document.getElementById('quiz-overlay').classList.remove('visible');
+    finishQuiz();
+  }
+});
+
+function finishQuiz(){
+  const moonKey = currentQuiz.moonKey;
+  const m = MOONS[moonKey];
+  const gained = currentQuiz.correctCount * 15;
+  addScore(gained);
+  GameState.completed[moonKey] = true;
+
+  const idx = MOON_ORDER.indexOf(moonKey);
+  const nextKey = MOON_ORDER[idx+1];
+  if(nextKey) GameState.unlocked[nextKey] = true;
+
+  document.getElementById('quiz-summary-title').textContent = `${m.name} Mission Complete!`;
+  let text = `You answered ${currentQuiz.correctCount} of ${m.quiz.length} questions correctly, earning ${gained} bonus points.`;
+  if(nextKey){
+    text += ` ${MOONS[nextKey].name} is now unlocked!`;
+  } else {
+    text += ` You've surveyed every major moon in the Jovian system!`;
+  }
+  document.getElementById('quiz-summary-text').textContent = text;
+  document.getElementById('quiz-summary-overlay').classList.add('visible');
+}
+
+document.getElementById('quiz-summary-btn').addEventListener('click', () => {
+  document.getElementById('quiz-summary-overlay').classList.remove('visible');
+  const sceneRef = currentQuiz.sceneRef;
+  currentQuiz = null;
+  sceneRef.scene.start('Orbit');
+});
+
+function openCompletionPanel(){
+  document.getElementById('complete-text').innerHTML =
+    `Final score: <b>${GameState.score}</b> points.<br><br>` +
+    `Across this mission you saw how Jupiter's immense gravity helped sculpt the early Solar System, and how its four Galilean moons tell very different stories — from Io's raging volcanoes, to the hidden oceans of Europa and Ganymede, to Callisto's ancient, quiet, cratered face. ` +
+    `Moons like Europa and Ganymede, with their subsurface oceans, remain some of the most promising places in our Solar System to search for environments that could support life. Thanks for exploring the Jovian system!`;
+  document.getElementById('complete-overlay').classList.add('visible');
+}
+
+/* =========================================================
+   Phaser game init
+   ========================================================= */
+const config = {
+  type: Phaser.AUTO,
+  width: 820,
+  height: 560,
+  parent: 'game-container',
+  backgroundColor: '#05060f',
+  scene: [BootScene, OrbitScene, MoonScene],
+  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
+};
+const game = new Phaser.Game(config);
+</script>
+</body>
+</html>
